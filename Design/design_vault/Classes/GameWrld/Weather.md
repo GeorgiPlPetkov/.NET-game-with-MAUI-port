@@ -1,0 +1,1 @@
+**Structures that will either be preset on world generation or have a cycle of appearing and disappearing on their own
