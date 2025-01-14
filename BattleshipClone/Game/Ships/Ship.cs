@@ -68,39 +68,34 @@ namespace BattleshipClone.Game.Ships
             return new Ship("battleship", 4, 0, 5);
         }
 
-        public void RotateClockwise()
-        {
-            /*
-            int temp_q = PositionQ;
-            if (clockwise) {
-                PositionQ = -PositionR;
-                PositionR = -PositionS;
-                PositionS = -temp_q;
-            } else {
-                PositionQ = -PositionS;
-                PositionS = -PositionR;
-                PositionR = -temp_q;
-            }
-            */
-            for (int pos_index = center_index - 1; pos_index >= 0; pos_index--) { 
-            
-            }
-        }
-
-        public void MoveTo(int x, int y)
-        {
-            CenterX = x;
-            CenterY = y;
-        }
-
         public void MoveBy(int x, int y)
         {
-            for (int pos_index = 0; pos_index < Positions.Length; pos_index++) { 
+            for (int pos_index = 0; pos_index < Positions.Length; pos_index++)
+            {
                 Positions[pos_index, 0] += x;
                 Positions[pos_index, 1] += y;
             }
         }
+        public void MoveTo(int x, int y)
+        {
+            int x_offset = CenterX - x;
+            int y_offset = CenterY - y;
 
-        
+            MoveBy(x_offset, y_offset);
+        }
+        public void RotateClockwise()
+        {
+            int x = CenterX;
+            int y = CenterY;
+
+            MoveTo(0, 0);
+
+            for (int pos_index = 0; pos_index < Positions.Length; pos_index++) {
+                Positions[pos_index, 0] = Positions[pos_index, 1];
+                Positions[pos_index, 1] = -Positions[pos_index, 0];
+            }
+
+            MoveTo(x, y);
+        }
     }
 }

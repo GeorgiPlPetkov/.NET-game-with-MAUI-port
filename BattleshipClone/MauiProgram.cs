@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using BattleshipClone.DB;
+using Microsoft.Extensions.Logging;
 
 namespace BattleshipClone
 {
@@ -14,6 +15,8 @@ namespace BattleshipClone
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
+
+            builder.Services.AddSingleton<SqliteSaveService>();
 
 #if DEBUG
     		builder.Logging.AddDebug();

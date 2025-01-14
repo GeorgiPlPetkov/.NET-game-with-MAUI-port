@@ -16,7 +16,7 @@ namespace BattleshipClone.Game
 
         public Tile[,] Tiles { get; private set; }
 
-        private int ship_index = 0;
+        private int current_ship_index = 0;
         public Ship[] Ships { get; private set; }
 
         public int TileSize { get; private set; } = 32;
@@ -41,15 +41,37 @@ namespace BattleshipClone.Game
         }
         public void AddShip(Ship ship)
         {
-            throw new NotImplementedException();
+            Ships[current_ship_index] = ship;
+            current_ship_index++;
+        }
+
+        public void MoveShip(int x, int y)
+        {
+            Ships[current_ship_index].MoveTo(x, y);
+
+            if (IsShipInBounds(Ships[current_ship_index])) { 
+                
+            }
         }
         public void RotateShipClockwise()
         {
-            throw new NotImplementedException();
+            Ships[current_ship_index].RotateClockwise();
         }
-        public void MoveShip(int x, int y)
+        
+
+        private bool IsShipInBounds(Ship ship) {
+            int x_bow = ship.Positions[0, 0];
+            int y_bow = ship.Positions[0, 1];
+
+            int x_stern = ship.Positions[ship.Positions.Length, 0];
+            int y_stern = ship.Positions[ship.Positions.Length, 1];
+
+            return IsPointInBounds(x_bow, y_bow) && IsPointInBounds(x_stern, y_stern); 
+        }
+
+        private bool IsPointInBounds(int x, int y)
         {
-            throw new NotImplementedException();
+            return (x >= 0 && x <= BoardWidth && y >= 0 && y <= BoardHeight);
         }
     }
 }

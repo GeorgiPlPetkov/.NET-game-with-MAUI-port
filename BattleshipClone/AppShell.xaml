@@ -8,8 +8,28 @@
     Title="BattleshipClone">
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:Pages.BattlePage}"
+        Title="Main"
+        ContentTemplate="{DataTemplate local:Pages.MainPage}"
         Route="MainPage" />
+
+    <ShellContent
+        Title="Setup"
+        ContentTemplate="{DataTemplate local:Pages.SetupPage}"
+        Route="SetupPage" />
+
+    <ShellContent
+        Title="Battle"
+        ContentTemplate="{DataTemplate local:Pages.BattlePage}"
+        Route="BattlePage" />
+
+    <ShellContent
+        Title="Load"
+        ContentTemplate="{DataTemplate local:Pages.SavedGamesPage}"
+        Route="LoadPage" />
+
+    <ShellContent
+        Title="Options"
+        ContentTemplate="{DataTemplate local:Pages.OptionsPage}"
+        Route="OptionsPage" />
 
 </Shell>
