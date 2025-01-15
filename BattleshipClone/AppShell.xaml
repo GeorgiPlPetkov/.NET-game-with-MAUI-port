@@ -20,7 +20,7 @@
     <ShellContent
         Title="Battle"
         ContentTemplate="{DataTemplate local:Pages.BattlePage}"
-        Route="BattlePage" />
+        Route="GamePage" />
 
     <ShellContent
         Title="Load"

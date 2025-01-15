@@ -3,10 +3,9 @@
 namespace BattleshipClone.DB
 {
     [Table("save_game_state")]
-    internal class SavedGameState
+    public class SavedGameState
     {
-        [PrimaryKey]
-        [AutoIncrement]
+        [PrimaryKey, AutoIncrement, Column("game_id")]
         public int StateId { get; set; }
 
         [Column("name")]

@@ -53,19 +53,15 @@ namespace BattleshipClone.Game.Ships
         }
         public static Ship Destroyer()
         {
-            return new Ship("destroyer", 1, 0, 2);
+            return new Ship("Destroyer", 1, 0, 2);
         }
         public static Ship Cruiser()
         {
-            return new Ship("cruiser", 2, 0, 3);
-        }
-        public static Ship Carrier()
-        {
-            return new Ship("carrier", 3, 0, 4);
+            return new Ship("Cruiser", 2, 0, 3);
         }
         public static Ship Battleship()
         {
-            return new Ship("battleship", 4, 0, 5);
+            return new Ship("Battleship", 3, 0, 4);
         }
 
         public void MoveBy(int x, int y)

@@ -40,7 +40,7 @@ public partial class MainPage : ContentPage
 							new MenuButton { 
 								Text = "New Game",
                                 FontSize = menu_button_text_size,
-                                VerticalOptions = LayoutOptions.Fill,
+                                
 								Command = new Command(execute: () => {
                                     Shell.Current.GoToAsync("//SetupPage");
                                 }) 
@@ -50,7 +50,7 @@ public partial class MainPage : ContentPage
                                 FontSize = menu_button_text_size,
 
                                 Command = new Command(execute: () => {
-                                    Shell.Current.GoToAsync("//SavedGamesPage");
+                                    Shell.Current.GoToAsync("//LoadPage");
                                 })
                             },
                             new MenuButton {

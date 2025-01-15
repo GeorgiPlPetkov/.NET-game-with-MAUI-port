@@ -1,4 +1,6 @@
-﻿namespace BattleshipClone
+﻿using BattleshipClone.Pages;
+
+namespace BattleshipClone
 {
     public partial class AppShell : Shell
     {

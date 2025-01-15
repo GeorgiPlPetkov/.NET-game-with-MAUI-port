@@ -12,8 +12,7 @@ namespace BattleshipClone.Game
     {
         int BoardWidth { get; }
         int BoardHeight { get; }
-        int TileSize { get; }
-
+        
         Tile[,] Tiles { get; }
         Ship[] Ships { get; }
 

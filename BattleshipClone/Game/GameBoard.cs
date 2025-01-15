@@ -1,10 +1,5 @@
 ﻿using BattleshipClone.Game.Ships;
 using BattleshipClone.Game.Tiles;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BattleshipClone.Game
 {
@@ -19,11 +14,11 @@ namespace BattleshipClone.Game
         private int current_ship_index = 0;
         public Ship[] Ships { get; private set; }
 
-        public int TileSize { get; private set; } = 32;
+        public const int TileSize = 32;
 
         public GameBoard() {
-            BoardWidth = 10;
-            BoardHeight = 10;
+            BoardWidth = 8;
+            BoardHeight = 8;
 
             Tiles = new Tile[BoardHeight, BoardWidth];
             for (int tile_y = 0; tile_y < BoardWidth; tile_y++)
@@ -32,7 +27,7 @@ namespace BattleshipClone.Game
                     Tiles[tile_y, tile_x] = Tile.DeepWaterTile();
                 }
 
-            Ships = new Ship[8];
+            Ships = new Ship[5];
         }
 
         public bool Check(int x, int y)
@@ -45,28 +40,26 @@ namespace BattleshipClone.Game
             current_ship_index++;
         }
 
-        public void MoveShip(int x, int y)
+        public void MoveShip(int new_x, int new_y)
         {
-            Ships[current_ship_index].MoveTo(x, y);
-
-            if (IsShipInBounds(Ships[current_ship_index])) { 
-                
-            }
-        }
-        public void RotateShipClockwise()
-        {
-            Ships[current_ship_index].RotateClockwise();
-        }
-        
-
-        private bool IsShipInBounds(Ship ship) {
+            IShip ship = Ships[current_ship_index];
+            
             int x_bow = ship.Positions[0, 0];
             int y_bow = ship.Positions[0, 1];
 
             int x_stern = ship.Positions[ship.Positions.Length, 0];
             int y_stern = ship.Positions[ship.Positions.Length, 1];
 
-            return IsPointInBounds(x_bow, y_bow) && IsPointInBounds(x_stern, y_stern); 
+            int x_offset = ship.CenterX - new_x;
+            int y_offset = ship.CenterY - new_y;
+            if (IsPointInBounds(x_bow + x_offset, y_bow + y_offset) 
+                && IsPointInBounds(x_stern + x_offset, y_stern + y_offset)) { 
+                ship.MoveTo(new_x, new_y);
+            }
+        }
+        public void RotateShipClockwise()
+        {
+            Ships[current_ship_index].RotateClockwise();
         }
 
         private bool IsPointInBounds(int x, int y)
