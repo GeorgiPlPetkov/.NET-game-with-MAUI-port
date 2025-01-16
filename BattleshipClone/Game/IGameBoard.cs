@@ -16,10 +16,10 @@ namespace BattleshipClone.Game
         Tile[,] Tiles { get; }
         Ship[] Ships { get; }
 
-        bool Check(int x, int y);
+        int Check(int x, int y);
 
         void AddShip(Ship ship);
-        void RotateShipClockwise();
-        void MoveShip(int x, int y);
+        void RotateShipClockwise(Ship ship);
+        void MoveShip(Ship ship, int x, int y);
     }
 }

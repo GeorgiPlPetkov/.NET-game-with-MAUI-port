@@ -68,10 +68,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Resources\Images\ShipBits\" />
-	</ItemGroup>
-
-	<ItemGroup>
+	  <MauiImage Include="Resources\Images\ShipBits\battleship.png" />
+	  <MauiImage Include="Resources\Images\ShipBits\cruiser.png" />
+	  <MauiImage Include="Resources\Images\ShipBits\destroyer.png" />
 	  <MauiImage Include="Resources\Images\Tiles\deep_water.png" />
 	</ItemGroup>
 

@@ -1,72 +1,59 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BattleshipClone.Game.Ships
+﻿namespace BattleshipClone.Game.Ships
 {
     internal class Ship : IShip
     {
         public string ShipClass { get; private set; }
-        public int Size { get; private set; }
+        public int Size { get { return Positions.GetLength(0); } } 
 
-        private int center_index;
-        public int CenterX { 
-            get { return Positions[center_index, 0]; } 
-            private set { Positions[center_index, 0] = value; } 
+        public int BowX { 
+            get { return Positions[0, 0]; } 
+            private set { Positions[0, 0] = value; } 
         }
-        public int CenterY {
-            get { return Positions[center_index, 1]; }
-            private set { Positions[center_index, 1] = value; }
+        public int BowY {
+            get { return Positions[0, 1]; }
+            private set { Positions[0, 1] = value; }
+        }
+
+        public int SternX
+        {
+            get { return Positions[Size - 1, 0]; }
+            private set { Positions[Size - 1, 0] = value; }
+        }
+        public int SternY
+        {
+            get { return Positions[Size - 1, 1]; }
+            private set { Positions[Size - 1, 1] = value; }
         }
 
         public int[,] Positions { get; private set; }
-        public Ship(string ship_class, int x, int y, int size)
+        public Ship(string ship_class, int size)
         {
             ShipClass = ship_class;
-            Size = size;
-
-            center_index = size / 2;
-
+            
             Positions = new int[size, 2];
-
-            CenterX = x;
-            CenterY = y;
-
-            SetPositions();
-        }
-
-        private void SetPositions()
-        {
-            for (int pos_index = center_index - 1; pos_index >= 0; pos_index--)
-            {
-                Positions[pos_index, 0] = CenterX - pos_index;
-                Positions[pos_index, 1] = CenterY;
-            }
-
-            for (int pos_index = center_index + 1; pos_index < Size; pos_index++)
-            {
-                Positions[pos_index, 0] = CenterX + pos_index;
-                Positions[pos_index, 1] = CenterY;
+            for (int pos_index = 0; pos_index < size; pos_index++) { 
+                Positions[pos_index, 0] = pos_index;
+                Positions[pos_index, 1] = 0;
             }
         }
+
+        
         public static Ship Destroyer()
         {
-            return new Ship("Destroyer", 1, 0, 2);
+            return new Ship("Destroyer", 2);
         }
         public static Ship Cruiser()
         {
-            return new Ship("Cruiser", 2, 0, 3);
+            return new Ship("Cruiser", 3);
         }
         public static Ship Battleship()
         {
-            return new Ship("Battleship", 3, 0, 4);
+            return new Ship("Battleship", 4);
         }
 
         public void MoveBy(int x, int y)
         {
-            for (int pos_index = 0; pos_index < Positions.Length; pos_index++)
+            for (int pos_index = 0; pos_index < Size; pos_index++)
             {
                 Positions[pos_index, 0] += x;
                 Positions[pos_index, 1] += y;
@@ -74,23 +61,23 @@ namespace BattleshipClone.Game.Ships
         }
         public void MoveTo(int x, int y)
         {
-            int x_offset = CenterX - x;
-            int y_offset = CenterY - y;
-
+            int x_offset = x - BowX;
+            int y_offset = y - BowY;
+            
             MoveBy(x_offset, y_offset);
         }
         public void RotateClockwise()
         {
-            int x = CenterX;
-            int y = CenterY;
+            int x = SternX;
+            int y = SternY;
 
             MoveTo(0, 0);
 
-            for (int pos_index = 0; pos_index < Positions.Length; pos_index++) {
+            for (int pos_index = 0; pos_index < Size; pos_index++) {
+                int temp = Positions[pos_index, 0];
                 Positions[pos_index, 0] = Positions[pos_index, 1];
-                Positions[pos_index, 1] = -Positions[pos_index, 0];
+                Positions[pos_index, 1] = -temp;
             }
-
             MoveTo(x, y);
         }
     }

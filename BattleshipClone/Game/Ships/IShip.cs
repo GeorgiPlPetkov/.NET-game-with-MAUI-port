@@ -9,8 +9,12 @@ namespace BattleshipClone.Game.Ships
     internal interface IShip
     {
         string ShipClass { get; }
-        int CenterX { get; }
-        int CenterY { get; }
+        
+        int BowX { get; }
+        int BowY { get; }
+        int SternX { get; }
+        int SternY { get; }
+
         int[,] Positions { get; }
         int Size { get; }
 
