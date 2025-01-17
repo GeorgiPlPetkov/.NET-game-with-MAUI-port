@@ -1,9 +1,10 @@
 ﻿using BattleshipClone.Game.Ships;
 using BattleshipClone.Game.Tiles;
+using System.Collections;
 
 namespace BattleshipClone.Game
 {
-    internal class GameBoard : IGameBoard
+    public class GameBoard : IGameBoard
     {
         public int BoardWidth { get; private set; }
         public int BoardHeight { get; private set; }
@@ -16,25 +17,38 @@ namespace BattleshipClone.Game
 
         public const int TileSize = 32;
 
+        private BitArray[] shot_map;
+        private BitArray[] ship_map;
+
         public GameBoard() {
             BoardWidth = 8;
             BoardHeight = 8;
 
             Ships = new Ship[6];
 
+            shot_map = new BitArray[BoardHeight];
+            ship_map = new BitArray[BoardHeight];
+            for (int y = 0; y < BoardHeight; y++) {
+                shot_map[y] = new BitArray(BoardWidth, false);
+                ship_map[y] = new BitArray(BoardWidth, false);
+            }
+  
+            
             Tiles = new Tile[BoardHeight, BoardWidth];
             for (int tile_y = 0; tile_y < BoardWidth; tile_y++)
                 for (int tile_x = 0; tile_x < BoardWidth; tile_x++)
                 {
                     Tiles[tile_y, tile_x] = Tile.DeepWaterTile();
                 }
-
-            
         }
 
         // returns the index of the ship on the tile or -1
+        // -2 if the tile has already been shot
         public int Check(int x, int y)
         {
+            if (shot_map[y][x])
+                return -2;
+
             Ship funny_check_ship = new("hehe", 1);
             funny_check_ship.MoveTo(x, y);
 
@@ -45,7 +59,8 @@ namespace BattleshipClone.Game
                     return ship_index;
                 }
             }
-
+            
+            shot_map[y][x] = true;
             return -1;
         }
         public void AddShip(Ship new_ship)
@@ -165,6 +180,25 @@ namespace BattleshipClone.Game
             if (val == 0) return 0; // collinear 
 
             return (val > 0) ? 1 : 2; // clock or counterclock wise 
+        }
+
+        public BitArray[] GetShotMap() {
+            return shot_map;
+        }
+
+        public BitArray[] GetShipMap() {
+            for (int ship_index = 0; ship_index < current_ship_count; ship_index++)
+            {
+                for (int ship_bit_index = 0; ship_bit_index < Ships[ship_index].Size; ship_bit_index++)
+                { 
+                    int x = Ships[ship_index].Positions[ship_bit_index, 0];
+                    int y = Ships[ship_index].Positions[ship_bit_index, 1];
+
+                    ship_map[y][x] = true;
+                }    
+            }
+
+            return ship_map;
         }
     }
 }

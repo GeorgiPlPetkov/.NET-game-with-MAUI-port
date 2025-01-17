@@ -12,7 +12,7 @@ public partial class MainPage : ContentPage
         double menu_button_text_size = screen_heigth * .05;
 
         double main_menu_w = screen_width * .8;
-        double main_menu_h = screen_heigth * .4;
+        double main_menu_h = screen_heigth * .35;
 
         BackgroundImageSource = ImageSource.FromFile("dotnet_bot.png");
         
@@ -54,14 +54,6 @@ public partial class MainPage : ContentPage
                                 })
                             },
                             new MenuButton {
-								Text = "Options",
-                                FontSize = menu_button_text_size,
-
-                                Command = new Command(execute: () => {
-                                    Shell.Current.GoToAsync("//OptionsPage");
-                                })
-                            },
-                            new MenuButton {
 								Text = "Kill Self",
                                 FontSize = menu_button_text_size,
 
@@ -76,30 +68,5 @@ public partial class MainPage : ContentPage
 				}
 			}
 		};
-
-
 	}
-
-    private void OnNewGameClicked(object sender, EventArgs e)
-    {
-        
-        // Add logic to start a new game
-    }
-
-    private async void OnLoadGameClicked(object sender, EventArgs e)
-    {
-        await DisplayAlert("Load Game", "pwessed", "clos");
-        // Add logic to load a game
-    }
-
-    private async void OnOptionsClicked(object sender, EventArgs e)
-    {
-        await DisplayAlert("Opts", "pwessed", "clos");
-        // Add logic to open options
-    }
-
-    private void OnExitClicked(object sender, EventArgs e)
-    {
-        System.Diagnostics.Process.GetCurrentProcess().CloseMainWindow();
-    }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BattleshipClone.Game.Ships
 {
-    internal interface IShip
+    public interface IShip
     {
         string ShipClass { get; }
         

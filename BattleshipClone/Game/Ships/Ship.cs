@@ -1,6 +1,6 @@
 ﻿namespace BattleshipClone.Game.Ships
 {
-    internal class Ship : IShip
+    public class Ship : IShip
     {
         public string ShipClass { get; private set; }
         public int Size { get { return Positions.GetLength(0); } } 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BattleshipClone.Game.Tiles
 {
-    internal interface ITile
+    public interface ITile
     {
         string TileType { get; }
         int DepthIndex { get; }

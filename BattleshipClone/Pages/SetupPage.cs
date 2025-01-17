@@ -1,20 +1,17 @@
 using BattleshipClone.Game;
 using BattleshipClone.Game.Tiles;
 using BattleshipClone.Game.Ships;
+using BattleshipClone.Pages.CustomElements;
+using SQLitePCL;
 
 namespace BattleshipClone.Pages;
 
 public partial class SetupPage : ContentPage
 {
-    private GameBoard player_board = new();
-    private AbsoluteLayout player_board_ui;
+    private GameBoard player_board;
+    private GameBoardUI player_board_ui;
 
-    private HorizontalStackLayout ship_list_ui = new() 
-    {
-        Children = {
-            new Label { Text = "seeing me is bad mate >:3" }
-        }
-    };
+    private HorizontalStackLayout ship_list_ui = new();
     private List<Ship> ship_list = new() {
         Ship.Destroyer(),
         Ship.Destroyer(), 
@@ -29,23 +26,28 @@ public partial class SetupPage : ContentPage
     private Ship? selected_ship = null;
     private int selected_ship_index = -1;
 
-    
-    
-
+    private readonly List<TapGestureRecognizer> ship_bit_behaviour = [];
+    private readonly List<TapGestureRecognizer> tile_behaviour = [];
     public SetupPage()
     {
+        TapGestureRecognizer rotation_gesture = new();
+        rotation_gesture.Tapped += OnShipDoubleTap;
+        rotation_gesture.NumberOfTapsRequired = 2;
         
+        TapGestureRecognizer selection_gesture = new();
+        selection_gesture.Tapped += OnShipSelectedFromBoard;
 
-        player_board_ui = new()
-        {
-            HorizontalOptions = LayoutOptions.Center,
-            VerticalOptions = LayoutOptions.Center,
+        TapGestureRecognizer placement_gesture = new();
+        placement_gesture.Tapped += OnTileTap;
 
-            BackgroundColor = Colors.Coral,
+        ship_bit_behaviour.Add(rotation_gesture);
+        ship_bit_behaviour.Add(selection_gesture);
+        tile_behaviour.Add(placement_gesture);
 
-            WidthRequest = player_board.BoardWidth * GameBoard.TileSize,
-            HeightRequest = player_board.BoardHeight * GameBoard.TileSize
-        };
+        player_board = new();
+        player_board_ui = new(player_board, tile_behaviour, ship_bit_behaviour);
+
+        ship_list_ui.ChildRemoved += OnShipPloppedDown;
 
         Content = new VerticalStackLayout
         {
@@ -54,28 +56,35 @@ public partial class SetupPage : ContentPage
 
             Children = {
                 player_board_ui,
-                ship_list_ui,
+                new ScrollView { 
+                    HorizontalOptions = LayoutOptions.Center,
+                    VerticalOptions = LayoutOptions.Center,
+
+                    Orientation = ScrollOrientation.Horizontal,
+                    Content = ship_list_ui
+                },
             }
         };
 
-
-        UpdateShipList();
-        UpdateBoard();
-
+        LoadShipList();
+        player_board_ui.UpdateShips();
     }
 
-    private void UpdateShipList() {
-        ship_list_ui.Children.Clear();
-        
-        for(int ship_index = 0; ship_index < ship_list.Count; ship_index++) {
+    /// <summary>
+    /// Ship list functionalities
+    /// </summary>
+    private void LoadShipList() {
+        for (int ship_index = 0; ship_index < ship_list.Count; ship_index++)
+        {
             Ship ship = ship_list[ship_index];
-            
-            Frame ship_frame = new() {
-                HeightRequest = 200,
+
+            Frame ship_frame = new()
+            {
                 WidthRequest = 200,
+                HeightRequest = 200,
 
                 CornerRadius = 2,
-                
+
                 Padding = 0,
                 Margin = 0,
 
@@ -105,69 +114,119 @@ public partial class SetupPage : ContentPage
             TapGestureRecognizer tgr = new();
             tgr.Tapped += OnShipSelectedFromList;
             ship_frame.GestureRecognizers.Add(tgr);
-            
+
             ship_list_ui.Children.Add(ship_frame);
         }
     }
 
-    
-    private void UpdateBoard() {  
-        player_board_ui.Children.Clear();
-        for (int tile_y = 0; tile_y < player_board.BoardHeight; tile_y++)
-            for (int tile_x = 0; tile_x < player_board.BoardHeight; tile_x++) {
-                Tile current_tile = player_board.Tiles[tile_y, tile_x];
-                Image tile_ui = new Image
-                {
-                    Source = ImageSource.FromFile($"{current_tile.TileType}.png"),
-
-                    WidthRequest = GameBoard.TileSize,
-                    HeightRequest = GameBoard.TileSize,
-
-                    MinimumWidthRequest = tile_x,
-                    MinimumHeightRequest = tile_y,
-
-                    TranslationX = tile_x * GameBoard.TileSize,
-                    TranslationY = tile_y * GameBoard.TileSize,
-                };
-                TapGestureRecognizer tap = new TapGestureRecognizer();
-                tap.Tapped += OnTileTap;
-                tile_ui.GestureRecognizers.Add(tap);
-                
-                player_board_ui.Add(tile_ui);
-            }
-
-        foreach(Ship s in player_board.Ships) {
-            if (s == null) break;
-            for (int ship_bit_index = 0; ship_bit_index < s.Size; ship_bit_index++)
-            {
-                Image ship_segment = new()
-                {
-                    WidthRequest = GameBoard.TileSize,
-                    HeightRequest = GameBoard.TileSize,
-
-                    MinimumWidthRequest = s.Positions[ship_bit_index, 0],
-                    MinimumHeightRequest = s.Positions[ship_bit_index, 1],
-
-                    TranslationX = s.Positions[ship_bit_index, 0] * GameBoard.TileSize,
-                    TranslationY = s.Positions[ship_bit_index, 1] * GameBoard.TileSize,
-
-                    Source = ImageSource.FromFile($"{s.ShipClass.ToLower()}.png"),
-                };
-                TapGestureRecognizer rotation_gesture = new();
-                rotation_gesture.Tapped += OnShipDoubleTap;
-                rotation_gesture.NumberOfTapsRequired = 5;
-                
-                TapGestureRecognizer selection_gesture = new();
-                selection_gesture.Tapped += OnShipSelectedFromBoard;
-                
-                ship_segment.GestureRecognizers.Add(rotation_gesture);
-                ship_segment.GestureRecognizers.Add(selection_gesture);
-
-                player_board_ui.Add(ship_segment);
-            }
+    private void UpdateShipList() {
+        for (int ship_index = 0; ship_index < ship_list.Count; ship_index++)
+        {
+            Frame f = (Frame) ship_list_ui.Children[ship_index];
+            f.MinimumWidthRequest = ship_index;
         }
     }
+    private void OnShipPloppedDown(object? sender, EventArgs e)
+    {
+        int childs = ship_list_ui.Children.Count;
 
+        if (childs > 0)
+            return;
+
+        Label difficutly_label = new() { 
+            Text = "$Difficutly: 1",
+            HorizontalTextAlignment = TextAlignment.Center,
+            VerticalTextAlignment = TextAlignment.Center, 
+            
+            Margin = 3,
+        };
+        Slider difficutly_slider = new()
+        {
+            Value = 1,
+            Minimum = 1,
+            Maximum = 3,
+
+            Margin = 3,
+
+            WidthRequest = 180,
+        };
+        difficutly_slider.ValueChanged += (s, e) =>
+        {
+            int dif_val = (int)e.NewValue;
+            difficutly_label.Text = $"Difficutly: {dif_val}";
+        };
+        Button start_game_b = new()
+        {
+            Text = "Play",
+
+            Margin = 3,
+        };
+        start_game_b.Clicked += (s, e) => {
+            Shell.Current.GoToAsync("//GamePage");
+        };
+        Button reset_setup_ui_b = new()
+        {
+            Text = "Reset",
+            Margin = 3,
+        };
+        reset_setup_ui_b.Clicked += (s, e) => { 
+            player_board = new();
+            player_board_ui = new(player_board, tile_behaviour, ship_bit_behaviour);
+            
+            ship_list = new() {
+                Ship.Destroyer(),
+                Ship.Destroyer(),
+                Ship.Destroyer(),
+
+                Ship.Cruiser(),
+                Ship.Cruiser(),
+
+                Ship.Battleship(),
+            };
+            ship_list_ui.ChildRemoved -= OnShipPloppedDown;
+            ship_list_ui.Children.Clear();
+            ship_list_ui.ChildRemoved += OnShipPloppedDown;
+            LoadShipList();
+            
+            selected_ship = null;
+            selected_ship_index = -1;
+            
+            player_board_ui.Load();
+            player_board_ui.UpdateShips();
+        };
+        Button main_menu_b = new()
+        {
+            Text = "Main Menu",
+            Margin = 3,
+        };
+        main_menu_b.Clicked += (s, e) => { Shell.Current.GoToAsync("//MainPage"); };
+        Frame finish_screen_frame = new() {
+            WidthRequest = 300,
+            HeightRequest = 300,
+            Content = new VerticalStackLayout
+            {
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center,
+
+                TranslationX = 10,
+                TranslationY = 10,
+                
+                Children = { 
+                    difficutly_label,
+                    difficutly_slider,
+                    start_game_b,
+                    reset_setup_ui_b,
+                    main_menu_b,
+                }
+            }
+        };
+
+        ship_list_ui.Children.Add(finish_screen_frame);
+    }
+
+    /// <summary>
+    /// Game board management functionalities
+    /// </summary>
     private void OnTileTap(object? sender, TappedEventArgs e)
     {
         if (selected_ship == null)
@@ -177,6 +236,7 @@ public partial class SetupPage : ContentPage
         {
             player_board.AddShip(selected_ship);
             ship_list.RemoveAt(selected_ship_index);
+            ship_list_ui.Children.RemoveAt(selected_ship_index);
             selected_ship_index = -1;
         }
         Image image_sender = (Image)sender!;
@@ -186,7 +246,7 @@ public partial class SetupPage : ContentPage
         
         player_board.MoveShip(selected_ship, tile_x, tile_y);
 
-        UpdateBoard();
+        player_board_ui.UpdateShips();
         UpdateShipList();
     }
 
@@ -205,7 +265,7 @@ public partial class SetupPage : ContentPage
         selected_ship = ship_list[selected_ship_index];
 
         UpdateShipList();
-        UpdateBoard();
+        player_board_ui.UpdateShips();
     }
 
     private void OnShipSelectedFromBoard(object? sender, EventArgs e) {
@@ -229,6 +289,7 @@ public partial class SetupPage : ContentPage
         player_board.RotateShipClockwise(selected_ship);
        
         UpdateShipList();
-        UpdateBoard();
+        player_board_ui.UpdateShips();
     }
+
 }

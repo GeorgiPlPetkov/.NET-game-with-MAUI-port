@@ -1,4 +1,5 @@
 ﻿using BattleshipClone.DB;
+using BattleshipClone.Game;
 using BattleshipClone.Pages;
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +19,8 @@ namespace BattleshipClone
                 });
             
             builder.Services.AddSingleton<ISavedStateRepository, SavedStateRepository>();
-            
+            builder.Services.AddSingleton<Enemy>();
+
             builder.Services.AddTransient<BattlePage>();
             builder.Services.AddTransient<SavedGamesPage>();
 
