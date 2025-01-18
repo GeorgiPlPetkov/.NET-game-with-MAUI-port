@@ -18,50 +18,50 @@ namespace BattleshipClone.Game
         public const int TileSize = 32;
 
         private BitArray[] shot_map;
-        private BitArray[] ship_map;
-
-        public GameBoard() {
+       
+        public GameBoard(bool player_board) {
             BoardWidth = 8;
             BoardHeight = 8;
 
             Ships = new Ship[6];
 
             shot_map = new BitArray[BoardHeight];
-            ship_map = new BitArray[BoardHeight];
             for (int y = 0; y < BoardHeight; y++) {
                 shot_map[y] = new BitArray(BoardWidth, false);
-                ship_map[y] = new BitArray(BoardWidth, false);
             }
-  
             
             Tiles = new Tile[BoardHeight, BoardWidth];
             for (int tile_y = 0; tile_y < BoardWidth; tile_y++)
                 for (int tile_x = 0; tile_x < BoardWidth; tile_x++)
                 {
-                    Tiles[tile_y, tile_x] = Tile.DeepWaterTile();
+                    if(player_board)
+                        Tiles[tile_y, tile_x] = Tile.PlayerTile();
+                    else
+                        Tiles[tile_y, tile_x] = Tile.EnemyTile();
                 }
         }
 
-        // returns the index of the ship on the tile or -1
-        // -2 if the tile has already been shot
-        public int Check(int x, int y)
+        public int GetShipIndexFromCoordinates(int x, int y)
         {
-            if (shot_map[y][x])
-                return -2;
-
             Ship funny_check_ship = new("hehe", 1);
             funny_check_ship.MoveTo(x, y);
 
             for (int ship_index = 0; ship_index < current_ship_count; ship_index++)
             {
                 if (DoShipsIntersect(funny_check_ship, Ships[ship_index]))
-                {
+                {   
                     return ship_index;
                 }
             }
             
-            shot_map[y][x] = true;
             return -1;
+        }
+        public int Hit(int x, int y) {
+            if (shot_map[y][x] == true)
+                return -2;
+
+            shot_map[y][x] = true;
+            return GetShipIndexFromCoordinates(x, y);
         }
         public void AddShip(Ship new_ship)
         {
@@ -83,7 +83,6 @@ namespace BattleshipClone.Game
             int old_x = ship.BowX;
             int old_y = ship.BowY;
             ship.MoveTo(new_x, new_y);
-
 
             int attempts = 0;
             while (!IsShipInBounds(ship) || !DoesShipFit(ship)) { 
@@ -157,7 +156,7 @@ namespace BattleshipClone.Game
 
             return false; 
         }
-        // Check if p2 lies between p1 and 3
+        // Check if p2 lies between p1 and p3
         static bool CheckSegment(int p1_x, int p1_y, int p2_x, int p2_y, int p3_x, int p3_y)
         {
             if (p2_x <= Math.Max(p1_x, p3_x) && p2_x >= Math.Min(p1_x, p3_x) &&
@@ -167,7 +166,7 @@ namespace BattleshipClone.Game
             return false;
         }
 
-        // Funky orientation calculations stolen from the net
+        // Funky orientation calculations stolen from the GeeksForGeeks (this is not a GPT household)
         // Here to be exact https://www.geeksforgeeks.org/orientation-3-ordered-points/ 
         // 0 --> p1, p2 and p3 are collinear 
         // 1 --> Clockwise 
@@ -182,23 +181,81 @@ namespace BattleshipClone.Game
             return (val > 0) ? 1 : 2; // clock or counterclock wise 
         }
 
-        public BitArray[] GetShotMap() {
-            return shot_map;
-        }
-
-        public BitArray[] GetShipMap() {
-            for (int ship_index = 0; ship_index < current_ship_count; ship_index++)
+        public byte[] GetShotMapAsByte() {
+            byte[] array_in_bytes = new byte[8];
+            for (int byte_index = 0; byte_index < array_in_bytes.Length; byte_index++)
             {
-                for (int ship_bit_index = 0; ship_bit_index < Ships[ship_index].Size; ship_bit_index++)
-                { 
-                    int x = Ships[ship_index].Positions[ship_bit_index, 0];
-                    int y = Ships[ship_index].Positions[ship_bit_index, 1];
-
-                    ship_map[y][x] = true;
-                }    
+                byte[] byte_row = new byte[1];
+                shot_map[byte_index].CopyTo(byte_row, 0);
+                array_in_bytes[byte_index] = byte_row[0];
             }
 
-            return ship_map;
+            return array_in_bytes;
+        }
+        public BitArray[] GetShotMap() { 
+            return shot_map;
+        }
+        public void LoadShotMap(byte[] map)
+        {
+            for(int row_index = 0; row_index < shot_map.GetLength(0); row_index++)
+                shot_map[row_index] = new BitArray(new byte[] { map[row_index] });
+        }
+        public string GetShipMap() {
+            string result = "";
+            for (int ship_index = 0; ship_index < current_ship_count; ship_index++)
+            {
+                result += Ships[ship_index].ToString();
+            }
+
+            return result;
+        }
+        public void LoadShipMap(string list)
+        {
+            string[] ship_details_string = list.Split('&');
+            Ship? new_ship = null;
+            current_ship_count = ship_details_string.Length - 1;
+            for (int ship_index = 0; ship_index < current_ship_count; ship_index++)
+            {
+                string[] ship_details = ship_details_string[ship_index].Split('|');
+
+                switch (ship_details[0])
+                {
+                    case "destroyer":
+                        new_ship = Ship.Destroyer();
+                        break;
+                    case "cruiser":
+                        new_ship = Ship.Cruiser();
+                        break;
+                    case "battleship":
+                        new_ship = Ship.Battleship();
+                        break;
+                }
+
+                int bow_x = int.Parse(ship_details[1]);
+                int bow_y = int.Parse(ship_details[2]);
+                int stern_x = int.Parse(ship_details[3]);
+                int stern_y = int.Parse(ship_details[4]);
+
+                
+                bool is_horizontal = (bow_y == stern_y);
+
+                int start_value = is_horizontal ?  Math.Min(bow_x, stern_x) : Math.Min(bow_y, stern_y);
+                int end_value = is_horizontal ?  Math.Max(bow_x, stern_x) : Math.Max(bow_y, stern_y);
+                List<int> coords = new();
+                for(int vals = start_value; vals <= end_value; vals++)
+                    coords.Add(vals);
+
+                for (int position_index = 0; position_index < new_ship.Size; position_index++)
+                {
+                    new_ship.Positions[position_index, 0] = is_horizontal ? coords[position_index] : bow_x ;
+                    new_ship.Positions[position_index, 1] = is_horizontal ? bow_y : coords[position_index];
+                }
+            
+
+                Ships[ship_index] = new_ship;
+            }
+
+            
         }
     }
 }

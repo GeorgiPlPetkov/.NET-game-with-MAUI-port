@@ -42,7 +42,7 @@ public partial class MainPage : ContentPage
                                 FontSize = menu_button_text_size,
                                 
 								Command = new Command(execute: () => {
-                                    Shell.Current.GoToAsync("//SetupPage");
+                                    Navigation.PushAsync(new SetupPage(), false);
                                 }) 
 							},
                             new MenuButton {
@@ -50,7 +50,7 @@ public partial class MainPage : ContentPage
                                 FontSize = menu_button_text_size,
 
                                 Command = new Command(execute: () => {
-                                    Shell.Current.GoToAsync("//LoadPage");
+                                    Navigation.PushAsync(new SavedGamesPage(), false);
                                 })
                             },
                             new MenuButton {
@@ -59,7 +59,7 @@ public partial class MainPage : ContentPage
 
                                 Command = new Command(execute: () => {
                                     System.Diagnostics.Process.GetCurrentProcess()
-                                                            .CloseMainWindow();
+                                                              .CloseMainWindow();
                                 })
                             },
                         }

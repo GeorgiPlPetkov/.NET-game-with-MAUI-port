@@ -1,4 +1,6 @@
-﻿namespace BattleshipClone
+﻿using BattleshipClone.DB;
+
+namespace BattleshipClone
 {
     public partial class App : Application
     {

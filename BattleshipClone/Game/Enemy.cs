@@ -17,10 +17,10 @@ namespace BattleshipClone.Game
     {
         private int difficulty = -1;
         private List<int> hit_memory;
-        private EnemyStates enemy_state;
+        //private EnemyStates enemy_state;
 
         public Enemy() { 
-            enemy_state = EnemyStates.NoTarget;
+            //enemy_state = EnemyStates.NoTarget;
             hit_memory = [];
         }
         public void SetDificulty(int difficulty) { 
@@ -38,7 +38,7 @@ namespace BattleshipClone.Game
             target_x = rng.Next(0, 8);
             target_y = rng.Next(0, 8);
 
-            Remember(target_x, target_x);
+            //Remember(target_x, target_x);
             return (target_x, target_y);
         }
 

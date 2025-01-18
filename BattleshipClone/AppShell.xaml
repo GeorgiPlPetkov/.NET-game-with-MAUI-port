@@ -27,9 +27,4 @@
         ContentTemplate="{DataTemplate local:Pages.SavedGamesPage}"
         Route="LoadPage" />
 
-    <ShellContent
-        Title="Options"
-        ContentTemplate="{DataTemplate local:Pages.OptionsPage}"
-        Route="OptionsPage" />
-
 </Shell>

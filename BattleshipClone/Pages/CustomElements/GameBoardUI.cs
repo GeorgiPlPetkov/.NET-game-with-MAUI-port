@@ -1,6 +1,7 @@
 ﻿using BattleshipClone.Game;
 using BattleshipClone.Game.Ships;
 using BattleshipClone.Game.Tiles;
+using System.Collections;
 
 namespace BattleshipClone.Pages.CustomElements
 {
@@ -99,8 +100,34 @@ namespace BattleshipClone.Pages.CustomElements
             }
         }
 
-        public void UpdateOverlay() { 
-        
+        public void UpdateOverlay(bool with_ships) {
+            int culling_floor = board.BoardWidth * board.BoardHeight;
+
+            if (with_ships) {
+                foreach (Ship s in board.Ships)
+                    culling_floor += s.Size;
+            }
+
+            for (int cull_index = Children.Count; cull_index >= culling_floor; cull_index--)
+                Children.RemoveAt(cull_index);
+
+            BitArray[] shot_map = board.GetShotMap();
+            for (int y = 0; y < shot_map.Length; y++)
+                for (int x = 0; x < shot_map[y].Length; x++)
+                    if (shot_map[y][x] == true) {
+                        Image overlay_cross = new()
+                        {
+                            WidthRequest = GameBoard.TileSize * scale,
+                            HeightRequest = GameBoard.TileSize * scale,
+
+                            TranslationX = x * GameBoard.TileSize * scale,
+                            TranslationY = y * GameBoard.TileSize * scale,
+                        };
+
+                        string cross_png_name = board.GetShipIndexFromCoordinates(x, y) > -1 ? "hit_mark.png" : "miss_mark.png";
+                        overlay_cross.Source = ImageSource.FromFile(cross_png_name);
+                        Children.Add(overlay_cross);
+                    }
         }
     }
 }

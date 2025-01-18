@@ -17,9 +17,13 @@ namespace BattleshipClone.Game.Tiles
             DepthIndex = depth_index;
         }
 
-        public static Tile DeepWaterTile() 
+        public static Tile PlayerTile() 
         {
-            return new Tile("deep_water", 2);
+            return new Tile("player_water", 2);
+        }
+
+        public static Tile EnemyTile() {
+            return new Tile("enemy_water", 2);
         }
     }
 }

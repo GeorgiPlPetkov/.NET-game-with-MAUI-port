@@ -16,7 +16,7 @@ namespace BattleshipClone.Game
         Tile[,] Tiles { get; }
         Ship[] Ships { get; }
 
-        int Check(int x, int y);
+        int GetShipIndexFromCoordinates(int x, int y);
 
         void AddShip(Ship ship);
         void RotateShipClockwise(Ship ship);

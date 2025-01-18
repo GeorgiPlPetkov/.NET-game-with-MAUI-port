@@ -57,7 +57,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="Resources\Images\Tiles\deep_water.png" />
+	  <None Remove="Resources\Images\Tiles\enemy_water.png" />
+	  <None Remove="Resources\Images\Tiles\hit_mark.png" />
+	  <None Remove="Resources\Images\Tiles\miss_mark.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -71,7 +73,10 @@
 	  <MauiImage Include="Resources\Images\ShipBits\battleship.png" />
 	  <MauiImage Include="Resources\Images\ShipBits\cruiser.png" />
 	  <MauiImage Include="Resources\Images\ShipBits\destroyer.png" />
-	  <MauiImage Include="Resources\Images\Tiles\deep_water.png" />
+	  <MauiImage Include="Resources\Images\Tiles\enemy_water.png" />
+	  <MauiImage Include="Resources\Images\Tiles\hit_mark.png" />
+	  <MauiImage Include="Resources\Images\Tiles\miss_mark.png" />
+	  <MauiImage Include="Resources\Images\Tiles\player_water.png" />
 	</ItemGroup>
 
 </Project>

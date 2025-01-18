@@ -7,6 +7,7 @@ namespace BattleshipClone.Pages;
 public partial class BattlePage : ContentPage
 {
     private readonly ISavedStateRepository repository;
+    private SavedGameState game_state;
     private readonly Enemy enemy;
 
     private GameBoard player_board;
@@ -14,36 +15,112 @@ public partial class BattlePage : ContentPage
     private GameBoard enemy_board;
     private GameBoardUI enemy_board_ui;
 
-    private BattlePageUI display;
+    private BattleDisplayUI display;
     private BattleDisplayInfo display_info;
-    
-    public BattlePage(ISavedStateRepository repo, Enemy enemy)
+
+    private Frame quit_menu;
+    private Button quit_button;
+    private Button save_button;
+    private Entry game_name_entry;    
+    public BattlePage(SavedGameState game_state)
     {
-        repository = repo;
-        this.enemy = enemy;
-
-        List<TapGestureRecognizer> enemy_tile_bhv = new List<TapGestureRecognizer>();
-        TapGestureRecognizer player_tap = new TapGestureRecognizer();
-        player_tap.Tapped += OnPlayerTap;
-        enemy_tile_bhv.Add(player_tap);
-
-        player_board = new GameBoard();
-        enemy_board = new GameBoard();
-        player_board_ui = new GameBoardUI(player_board);
-        enemy_board_ui = new GameBoardUI(enemy_board, enemy_tile_bhv, null);
-
-        display = new();
-        display_info = new BattleDisplayInfo(); 
+        repository = new SavedStateRepository();
+        this.enemy = new Enemy();
         
+        this.game_state = LoadGameState(game_state);
+
+        game_name_entry = new Entry {
+            Margin = 5,
+            Text = game_state.Name
+        };
+        save_button = new Button {
+            Margin = 5,
+            Text = "Save and Quit"
+        };
+        save_button.Clicked += (s, e) => {
+            game_state.EnemyShots = enemy_board.GetShotMapAsByte();
+            game_state.PlayerShots = player_board.GetShotMapAsByte();
+            
+            if (game_state.StateId == 0) {
+                game_state.Name = game_name_entry.Text;
+                repository.Create(game_state);
+            }
+            else {
+                if (game_state.Name == game_name_entry.Text) {
+                    repository.Update(game_state);
+                }
+                else {
+                    game_state.StateId = 0;
+                    game_state.Name = game_name_entry.Text;
+                    repository.Create(game_state);
+                }
+            }
+
+            Shell.Current.GoToAsync("//MainPage", false);            
+        };
+        quit_button = new Button {
+            Margin = 5,
+            Text = "Quit"
+        };
+        quit_button.Clicked += (s, e) => {
+            Shell.Current.GoToAsync("//MainPage", false);
+        };
+        quit_menu = new Frame
+        {
+            WidthRequest = 300,
+            HeightRequest = 200,
+            Content = new VerticalStackLayout {
+                game_name_entry,
+                save_button,
+                quit_button
+            }
+        };
 
         Content = new VerticalStackLayout
         {
             Children = {
-                player_board_ui,
                 display,
-                enemy_board_ui,
+                new HorizontalStackLayout {
+                    HorizontalOptions = LayoutOptions.Center,
+                    VerticalOptions = LayoutOptions.Center,
+
+                    Children = {
+                        player_board_ui,
+                        enemy_board_ui,
+                    }
+                },
+                quit_menu
             }
         };
+    }
+
+    private SavedGameState LoadGameState(SavedGameState current_state) { 
+        player_board = new GameBoard(true);
+        player_board.LoadShotMap(current_state.PlayerShots);
+        player_board.LoadShipMap(current_state.PlayerShips);
+        
+        enemy_board = new GameBoard(false);
+        enemy_board.LoadShotMap(current_state.EnemyShots);
+        enemy_board.LoadShipMap(current_state.EnemyShips);
+        
+        player_board_ui = new GameBoardUI(player_board);
+
+        List<TapGestureRecognizer> enemy_tile_bhv = new();
+        TapGestureRecognizer player_tap = new();
+        player_tap.Tapped += OnPlayerTap;
+        enemy_tile_bhv.Add(player_tap);
+        enemy_board_ui = new GameBoardUI(enemy_board, enemy_tile_bhv, []);
+
+        display = new();
+        display_info = new BattleDisplayInfo();
+        
+        display.Update(display_info);
+        player_board_ui.UpdateShips();
+
+        player_board_ui.UpdateOverlay(true);
+        enemy_board_ui.UpdateOverlay(false);
+
+        return current_state;
     }
 
     private void OnPlayerTap(object? sender, EventArgs e)
@@ -53,8 +130,7 @@ public partial class BattlePage : ContentPage
         int player_shot_x = (int)tile_image.MinimumWidthRequest;
         int player_shot_y = (int)tile_image.MinimumHeightRequest;
 
-        int player_hit_result = enemy_board.Check(player_shot_x, player_shot_y);
-
+        int player_hit_result = enemy_board.Hit(player_shot_x, player_shot_y);
         if (player_hit_result == -2) {
             return;
         }
@@ -68,60 +144,14 @@ public partial class BattlePage : ContentPage
         int enemy_hit_result = -2;
         while (enemy_hit_result == -2) {
             (int enemy_shot_x, int enemy_shot_y) = enemy.MakeMove();
-            enemy_hit_result = player_board.Check(enemy_shot_x, enemy_shot_y);
+            enemy_hit_result = player_board.Hit(enemy_shot_x, enemy_shot_y);
         }
 
         display_info.CurrentTurn++;
         display.Update(display_info);
 
         player_board_ui.UpdateShips();
-        enemy_board_ui.UpdateShips();
-    }
-}
-public struct BattleDisplayInfo { 
-    public int Hits { get; set; }
-    public int Misses { get; set; }
-    public int CurrentTurn { get; set; }
-
-    public BattleDisplayInfo()
-    { 
-        Hits = 0;  
-        Misses = 0;
-        CurrentTurn = 0;
-    }
-}
-public partial class BattlePageUI : HorizontalStackLayout {
-    private readonly Label turn_display;
-    private readonly Label hit_display;
-    private readonly Label miss_display;
-
-    public BattlePageUI() {
-        WidthRequest = GameBoard.TileSize * 8 * 2;
-        HeightRequest = 32;
-        
-        HorizontalOptions = LayoutOptions.Center;
-        VerticalOptions = LayoutOptions.Center;
-
-        turn_display = new() { 
-            Text = "Turn: 1"
-        };
-        hit_display = new()
-        {
-            Text = "Hits: 0"
-        };
-        miss_display = new()
-        {
-            Text = "Misses: 0"
-        };
-
-        Children.Add(turn_display);
-        Children.Add(hit_display);
-        Children.Add(miss_display);
-    }
-
-    public void Update(BattleDisplayInfo new_info) { 
-        turn_display.Text = $"Turn: {new_info.CurrentTurn}";
-        hit_display.Text = $"Turn: {new_info.Hits}";
-        miss_display.Text = $"Turn: {new_info.Misses}";
+        player_board_ui.UpdateOverlay(true);
+        enemy_board_ui.UpdateOverlay(false);
     }
 }

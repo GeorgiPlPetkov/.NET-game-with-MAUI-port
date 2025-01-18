@@ -37,7 +37,6 @@
             }
         }
 
-        
         public static Ship Destroyer()
         {
             return new Ship("Destroyer", 2);
@@ -79,6 +78,11 @@
                 Positions[pos_index, 1] = -temp;
             }
             MoveTo(x, y);
+        }
+
+        public override string ToString()
+        {
+            return $"{ShipClass.ToLower()}|{BowX}|{BowY}|{SternX}|{SternY}&";
         }
     }
 }

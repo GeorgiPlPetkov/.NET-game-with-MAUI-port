@@ -4,9 +4,11 @@ namespace BattleshipClone.DB
 {
     public class SavedStateRepository : ISavedStateRepository
     {
-        private string db_name = Path.Combine("..", "battleship.db");
+        private string db_name = "..";
         private SQLiteAsyncConnection connection;
-
+        public SavedStateRepository() {
+            Init();
+        }
         private void Init() {
             db_name = Path.Combine(SQLiteConstants.DatabasePath);
             connection = new(db_name);
@@ -17,27 +19,27 @@ namespace BattleshipClone.DB
             return connection.Table<SavedGameState>().ToListAsync();
         }
 
-        public Task<SavedGameState> GetById(int id) {
+        public Task<SavedGameState?> GetById(int id) {
             Init();
-            return connection.Table<SavedGameState>().Where((sgs) => sgs.StateId == id)
+            return connection.Table<SavedGameState?>().Where(sgs => sgs.StateId == id)
                                                      .FirstOrDefaultAsync();
         }
 
-        public void Create(SavedGameState new_state) { 
+        public async Task<int> Create(SavedGameState new_state) { 
             Init();
-            connection.InsertAsync(new_state);
+            return await connection.InsertAsync(new_state);
         }
 
-        public void Update(SavedGameState updated_state)
+        public async Task<int> Update(SavedGameState updated_state)
         {
             Init();
-            connection.UpdateAsync(updated_state);
+            return await connection.UpdateAsync(updated_state);
         }
 
-        public void Delete(SavedGameState state)
+        public async Task<int> Delete(SavedGameState state)
         {
             Init();
-            connection.DeleteAsync(state);
+            return await connection.DeleteAsync(state);
         }
     }
 }

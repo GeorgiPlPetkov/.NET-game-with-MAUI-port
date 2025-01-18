@@ -21,12 +21,6 @@ namespace BattleshipClone
             builder.Services.AddSingleton<ISavedStateRepository, SavedStateRepository>();
             builder.Services.AddSingleton<Enemy>();
 
-            builder.Services.AddTransient<BattlePage>();
-            builder.Services.AddTransient<SavedGamesPage>();
-
-#if DEBUG
-            builder.Logging.AddDebug();
-#endif
 
             return builder.Build();
         }

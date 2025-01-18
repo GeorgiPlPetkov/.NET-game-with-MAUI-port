@@ -1,13 +1,15 @@
 using BattleshipClone.Game;
-using BattleshipClone.Game.Tiles;
 using BattleshipClone.Game.Ships;
 using BattleshipClone.Pages.CustomElements;
-using SQLitePCL;
+using BattleshipClone.DB;
+
 
 namespace BattleshipClone.Pages;
 
 public partial class SetupPage : ContentPage
 {
+    private ISavedStateRepository repository;
+
     private GameBoard player_board;
     private GameBoardUI player_board_ui;
 
@@ -30,6 +32,8 @@ public partial class SetupPage : ContentPage
     private readonly List<TapGestureRecognizer> tile_behaviour = [];
     public SetupPage()
     {
+        repository = new SavedStateRepository();
+
         TapGestureRecognizer rotation_gesture = new();
         rotation_gesture.Tapped += OnShipDoubleTap;
         rotation_gesture.NumberOfTapsRequired = 2;
@@ -44,7 +48,7 @@ public partial class SetupPage : ContentPage
         ship_bit_behaviour.Add(selection_gesture);
         tile_behaviour.Add(placement_gesture);
 
-        player_board = new();
+        player_board = new(true);
         player_board_ui = new(player_board, tile_behaviour, ship_bit_behaviour);
 
         ship_list_ui.ChildRemoved += OnShipPloppedDown;
@@ -134,7 +138,7 @@ public partial class SetupPage : ContentPage
             return;
 
         Label difficutly_label = new() { 
-            Text = "$Difficutly: 1",
+            Text = "Difficutly: 1",
             HorizontalTextAlignment = TextAlignment.Center,
             VerticalTextAlignment = TextAlignment.Center, 
             
@@ -161,16 +165,35 @@ public partial class SetupPage : ContentPage
 
             Margin = 3,
         };
-        start_game_b.Clicked += (s, e) => {
-            Shell.Current.GoToAsync("//GamePage");
+        start_game_b.Clicked += async (s, e) =>
+        {
+            string ships = player_board.GetShipMap();
+            byte[] empty_shots_needed_for_save = player_board.GetShotMapAsByte();
+
+            SavedGameState new_game = new()
+            {
+                StateId = 0,
+                TurnNumber = 1,
+                Difficulty = (int)difficutly_slider.Value,
+                Name = "New Game",
+
+                PlayerShots = empty_shots_needed_for_save,
+                PlayerShips = ships,
+
+                EnemyShots = empty_shots_needed_for_save,
+                EnemyShips = ships
+            };
+
+            await Navigation.PushAsync(new BattlePage(new_game), false);
         };
         Button reset_setup_ui_b = new()
         {
             Text = "Reset",
             Margin = 3,
         };
-        reset_setup_ui_b.Clicked += (s, e) => { 
-            player_board = new();
+        reset_setup_ui_b.Clicked += (s, e) => {
+            /*
+            player_board = new(true);
             player_board_ui = new(player_board, tile_behaviour, ship_bit_behaviour);
             
             ship_list = new() {
@@ -193,13 +216,17 @@ public partial class SetupPage : ContentPage
             
             player_board_ui.Load();
             player_board_ui.UpdateShips();
+            */
+            Navigation.PushAsync(new SetupPage());
         };
         Button main_menu_b = new()
         {
             Text = "Main Menu",
             Margin = 3,
         };
-        main_menu_b.Clicked += (s, e) => { Shell.Current.GoToAsync("//MainPage"); };
+        main_menu_b.Clicked += (s, e) => { 
+            Shell.Current.GoToAsync("//MainPage", false);
+        };
         Frame finish_screen_frame = new() {
             WidthRequest = 300,
             HeightRequest = 300,
@@ -274,9 +301,9 @@ public partial class SetupPage : ContentPage
         int gamespace_x = (int)image_sender.MinimumWidthRequest;
         int gamespace_y = (int)image_sender.MinimumHeightRequest;
 
-        int selected_ship_index = player_board.Check(gamespace_x, gamespace_y);
+        int selected_ship_index = player_board.GetShipIndexFromCoordinates(gamespace_x, gamespace_y);
 
-        if (selected_ship_index == -1)
+        if (selected_ship_index < 0)
             return;
         
         selected_ship = player_board.Ships[selected_ship_index];
